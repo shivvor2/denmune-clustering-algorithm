@@ -23,7 +23,7 @@ dependencies = [
     "matplotlib",
     "scikit-learn",
     "seaborn",
-    "ngtpy",
+    "ngt",
     "anytree",
     "treelib",
 ]
