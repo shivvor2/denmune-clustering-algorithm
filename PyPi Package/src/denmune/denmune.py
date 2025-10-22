@@ -1,53 +1,56 @@
-# ====================================================================================================================
-# About the source code and the associated published paper
-# ====================================================================================================================
-# This is the source code of DenMune Clustering Algorithm accompanied with the experimental work
-# which is published in Elsevier Pattern Recognition, Volume 109, January 2021
-# paper can be accessed from 107589 https://doi.org/10.1016/j.patcog.2020.107589
-# source code and several examples on using it, can be accessed from
-# Gitbub's repository at https://github.com/egy1st/denmune-clustering-algorithm
-# Authors: Mohamed Abbas, Adel El-Zoghabi, and Amin Shoukry
-# Edition 0.0.2.3 Released 29-12-2021
-# PyPi package installation from  https://pypi.org/project/denmune/
-# ====================================================================================================================
+"""
+### About the DenMune Algorithm
+DenMune is a density-based (specifically, a Densiity-peak) clustering algorithm. the algorithm's highlights:
+- DenMune is a clustering algorithm that can find clusters of arbitrary size, shapes and densities in two-dimensions.
+- Higher dimensions are first reduced to 2-D using the t-sne.
+- The algorithm relies on a single parameter K (the number of nearest neighbors).
+- The results show the superiority of DenMune.
+
+### The source code and the associated paper
+This is the source code of DenMune Clustering Algorithm accompanied with the experimental work
+- Published in Elsevier Pattern Recognition, Volume 109, January 2021
+- paper can be accessed from 107589 https://doi.org/10.1016/j.patcog.2020.107589
+- source code and several examples on using it, can be accessed from
+- Gitbub's repository at https://github.com/egy1st/denmune-clustering-algorithm
+- Authors: Mohamed Abbas, Adel El-Zoghabi, and Amin Shoukry
+- Edition 0.0.97 Released 9-2-2022
+- PyPi package installation from  https://pypi.org/project/denmune/
+- Code coverage: https://app.codecov.io/gh/egy1st/denmune-clustering-algorithm
+- CI Pipelines: https://app.circleci.com/pipelines/github/egy1st/denmune-clustering-algorithm
+
+### Tutorials and Documentation
+- Read the Docs: https://denmune.readthedocs.io/en/latest/?badge=latest
+- Repo2Docker: https://mybinder.org/v2/gh/egy1st/denmune-clustering-algorithm/HEAD
+- Colab: https://github.com/egy1st/denmune-clustering-algorithm/blob/main/README.md#colab
+- Kaggle: https://github.com/egy1st/denmune-clustering-algorithm/blob/main/README.md#kaggle
 
 
-# ====================================================================================================================
-# About the DenMune Algorithm
-# ====================================================================================================================
-# DenMune Clustering Algorithm's Highlights
-# DenMune is a clustering algorithm that can find clusters of arbitrary size, shapes and densities in two-dimensions.
-# Higher dimensions are first reduced to 2-D using the t-sne.
-# The algorithm relies on a single parameter K (the number of nearest neighbors).
-# The results show the superiority of DenMune.
-# =====================================================================================================================
+### About me
+- Name: Mohamed Ali Abbas
+- Egypt - Alexandria - Smouha
+- Cell-phone: +20-01007500290
+- Personal E-mail: mohamed.alyabbas@outlook.com
+- Business E-meal: 01@zerobytes.one
+- website: https://zerobytes.one
+- website: https://egy1st.org
+- LinkedIn: https://www.linkedin.com/in/mohabbas/
+- Github: https://github.com/egy1st
+- Kaggle: https://www.kaggle.com/egyfirst
+- Udemy: https://www.udemy.com/user/mohammad-ali-abbas/
+- Facebook: https://www.facebook.com/ZeroBytes.One
 
-
-# =====================================================================================================================
-# About me
-# =====================================================================================================================
-# Name: Mohamed Ali Abbas
-# Egypt - Alexandria - Smouha
-# Cell-phone: +20-01007500290
-# Personal E-mail: mohamed.alyabbas@outlook.com
-# Business E-meal: 01@zerobytes.one
-# website: https://zerobytes.one
-# LinkedIn: https://www.linkedin.com/in/mohabbas/
-# Github: https://github.com/egy1st
-# Kaggle: https://www.kaggle.com/egyfirst
-# Udemy: https://www.udemy.com/user/mohammad-ali-abbas/
-# Facebook: https://www.facebook.com/ZeroBytes.One
-# =====================================================================================================================
+"""
 
 import operator
 import os.path
 import time
 
-import matplotlib.pyplot as plt
-import ngtpy
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+# from pandas._libs.lib import fast_unique_multiple_list_gen
 import seaborn as sns
+import ngtpy
 from anytree import Node
 from numpy import genfromtxt
 from sklearn.manifold import TSNE
@@ -58,32 +61,39 @@ sns.set_color_codes()
 plot_kwds = {'alpha': 0.99, 's': 80, 'linewidths': 0}
 
 
-# import for possible needs
-# from sklearn.metrics import confusion_matrix
-# from sklearn import metrics
-# import sklearn.cluster as cluster
-
-
 class DataPoint():
+    """each point in our dataset is initiated using this class"""
 
     def __init__(self, id):
+        """initialize points to its initial state: No class, No nearest neighbors, No recieved votes"""
         self.point_id = id
+        """unique identifier of each point"""
         self.class_id = 0  # 0 not clustered but -1 means a noise
+        """initially, each point has no class, that is what class 0 means"""
         self.refer_to = []
+        """list of k-nearest neighbors of that point will be stored here"""
         self.referred_by = []
+        """list of points that have this point in its k-nearest neighbors, in other words votes that this point recieves"""
         self.reference = []
+        """list of points that satisfy the mutual relation: the intersection between refer_to's points and referred_by's points"""
         self.visited = False
         self.homogeneity = 0
+        """dataset points will be sorted according to this measure"""
 
 
 class DenMune():
+    """The main class of the algorithm. any object should be initiated using this class"""
 
-    def __init__(self,
-                 train_data=None, test_data=None,
+    def __init__(
+                 self,
+                 train_data=None,
+                 test_data=None,
                  train_truth=None, test_truth=None,
-                 file_2d=None, k_nearest=0,
+                 file_2d=None, k_nearest=1,
                  rgn_tsne=False, prop_step=0,
+                 reduce_dims = True
                  ):
+        """Initiate object in Null-state. User should set paramters properly, otherwise an error would raise"""
 
         if train_data is None:
             raise Exception("No data is provided. At least train data should be provided. Set train_data argmunt properly.")
@@ -108,18 +118,41 @@ class DenMune():
 
         self.analyzer = {}
         self.analyzer['n_points'] = {}
+
+      # Let us check that we are working with Contiguous Numpy ndarray
+      # otherwise unxpected results appears
+      # check https://stackoverflow.com/questions/27266338/what-does-the-order-parameter-in-numpy-array-do-aka-what-is-contiguous-order
+      
         if isinstance(train_data, pd.DataFrame):
             train_data = train_data.to_numpy()
             train_data = train_data.copy(order='C')
-        if isinstance(test_data, pd.DataFrame):
+        # elif type(train_data == np.ndarray) and (not train_data.data.c_contiguous):
+        else:    
+            train_data = train_data.copy(order='C')
+
+        if train_truth is not None:
+          if isinstance(train_truth, pd.Series):
+              train_truth = train_truth.to_numpy()
+              train_truth = train_truth.copy(order='C')
+          # elif type(train_truth == np.ndarray) and (not train_truth.data.c_contiguous):  
+          else:  
+            train_truth = train_truth.copy(order='C')   
+
+        if test_data is not None:
+          if isinstance(test_data, pd.DataFrame):
             test_data = test_data.to_numpy()
             test_data = test_data.copy(order='C')
-        if isinstance(train_truth, pd.Series):
-            train_truth = train_truth.to_numpy()
-            train_truth = train_truth.copy(order='C')
-        if isinstance(test_truth, pd.Series):
-            test_truth = test_truth.to_numpy()
-            test_truth = test_truth.copy(order='C')
+          # elif type(test_data == np.ndarray) and (not test_data.data.c_contiguous): 
+          else:    
+            test_data = test_data.copy(order='C')
+    
+        if test_truth is not None:
+          if isinstance(test_truth, pd.Series):
+              test_truth = test_truth.to_numpy()
+              test_truth = test_truth.copy(order='C')
+          # elif type(test_truth == np.ndarray) and (not test_truth.data.c_contiguous):  
+          else:    
+              test_truth = test_truth.copy(order='C')       
 
         self.train_sz = len(train_data)
 
@@ -160,20 +193,21 @@ class DenMune():
         if file_2d is None:
             file_2d =  '_temp_2d' 
 
-        if data.shape[1] != 2 and file_2d == '_temp_2d':
-            # raise Exception("Sorry, this is N-D dataset, file-2d parameter should not be empty")
-            start = time.time()
-            self.generate_tsne(data, 2, file_2d='_temp_2d')
-            end = time.time()
-            self.analyzer["exec_time"]["t_SNE"] = end - start
-            data = genfromtxt(file_2d, delimiter=',')
-        elif data.shape[1] != 2 and file_2d != '_temp_2d':
-            if not os.path.isfile(file_2d) or rgn_tsne == True:
+        if reduce_dims:
+            if data.shape[1] != 2 and file_2d == '_temp_2d':
+                # raise Exception("Sorry, this is N-D dataset, file-2d parameter should not be empty")
                 start = time.time()
-                self.generate_tsne(data, 2, file_2d)
+                self.generate_tsne(data, 2, file_2d='_temp_2d')
                 end = time.time()
                 self.analyzer["exec_time"]["t_SNE"] = end - start
-            data = genfromtxt(file_2d, delimiter=',')
+                data = genfromtxt(file_2d, delimiter=',')
+            elif data.shape[1] != 2 and file_2d != '_temp_2d':
+                if not os.path.isfile(file_2d) or rgn_tsne == True:
+                    start = time.time()
+                    self.generate_tsne(data, 2, file_2d)
+                    end = time.time()
+                    self.analyzer["exec_time"]["t_SNE"] = end - start
+                data = genfromtxt(file_2d, delimiter=',')
 
         start_time = time.time()
 
