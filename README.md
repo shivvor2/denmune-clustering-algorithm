@@ -2,6 +2,11 @@
 
 DenMune is a clustering algorithm that can find clusters of arbitrary size, shapes, and densities in two-dimensions. Higher dimensions are first reduced to 2D using t-SNE. The algorithm relies on a single parameter K (the number of nearest neighbors). The results show the superiority of the algorithm. Enjoy the simplicity but the power of DenMune.
 
+*Note for `legacy` branch:* 
+
+*Functionality of this version is identical to the original DenMune implementation on [sklearn-contrib](https://github.com/scikit-learn-contrib/denmune-clustering-algorithm), with only updates to the packaging. You can install this version of the package by executing `pip install ./PyPi\ Package` in the root folder*
+ 
+
 ## Listen to this amazing interview podcast 
 
 [![DenMune Podcast](https://raw.githubusercontent.com/egy1st/images/refs/heads/main/clustering/denmune-podcast.png)](https://on.soundcloud.com/z7WeqJnHjDd26hD76)
