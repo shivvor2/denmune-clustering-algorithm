@@ -1,6 +1,33 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61",  # Use a modern setuptools
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "denmune"
+version = "0.0.97"
+description = "This is the package for DenMune Clustering Algorithm published in paper https://doi.org/10.1016/j.patcog.2020.107589"
+readme = "README.md"
+license = { text = "BSD License" }
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "scikit-learn",
+    "seaborn",
+    "ngt",
+    "anytree",
+    "treelib",
+]
+
+[project.urls]
+Homepage = "https://github.com/egy1st/denmune-clustering-algorithm"
+"Bug Tracker" = "https://github.com/egy1st/denmune-clustering-algorithm/issues"

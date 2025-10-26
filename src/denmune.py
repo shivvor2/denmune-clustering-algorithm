@@ -91,6 +91,7 @@ class DenMune():
                  train_truth=None, test_truth=None,
                  file_2d=None, k_nearest=1,
                  rgn_tsne=False, prop_step=0,
+                 reduce_dims = True
                  ):
         """Initiate object in Null-state. User should set paramters properly, otherwise an error would raise"""
 
@@ -192,20 +193,21 @@ class DenMune():
         if file_2d is None:
             file_2d =  '_temp_2d' 
 
-        if data.shape[1] != 2 and file_2d == '_temp_2d':
-            # raise Exception("Sorry, this is N-D dataset, file-2d parameter should not be empty")
-            start = time.time()
-            self.generate_tsne(data, 2, file_2d='_temp_2d')
-            end = time.time()
-            self.analyzer["exec_time"]["t_SNE"] = end - start
-            data = genfromtxt(file_2d, delimiter=',')
-        elif data.shape[1] != 2 and file_2d != '_temp_2d':
-            if not os.path.isfile(file_2d) or rgn_tsne == True:
+        if reduce_dims:
+            if data.shape[1] != 2 and file_2d == '_temp_2d':
+                # raise Exception("Sorry, this is N-D dataset, file-2d parameter should not be empty")
                 start = time.time()
-                self.generate_tsne(data, 2, file_2d)
+                self.generate_tsne(data, 2, file_2d='_temp_2d')
                 end = time.time()
                 self.analyzer["exec_time"]["t_SNE"] = end - start
-            data = genfromtxt(file_2d, delimiter=',')
+                data = genfromtxt(file_2d, delimiter=',')
+            elif data.shape[1] != 2 and file_2d != '_temp_2d':
+                if not os.path.isfile(file_2d) or rgn_tsne == True:
+                    start = time.time()
+                    self.generate_tsne(data, 2, file_2d)
+                    end = time.time()
+                    self.analyzer["exec_time"]["t_SNE"] = end - start
+                data = genfromtxt(file_2d, delimiter=',')
 
         start_time = time.time()
 
